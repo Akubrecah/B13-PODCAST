@@ -1,0 +1,42 @@
+<!-- base.html -->
+<!DOCTYPE html>
+<html class="bg-[#0f0f0f] text-white">
+<head>
+  <title>Podcast Platform</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#8B5CF6',
+            secondary: '#EC4899',
+            dark: '#0f0f0f',
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body>
+  <!-- Mobile menu -->
+  <div class="lg:hidden">
+    <button id="menu-btn">☰</button>
+    <nav id="mobile-menu" class="hidden">
+      <!-- Navigation items -->
+    </nav>
+  </div>
+  
+  <!-- Sidebar -->
+  <aside class="hidden lg:block w-64 fixed top-0 left-0 h-full glass-morphism">
+    <!-- Navigation -->
+  </aside>
+  
+  <main class="lg:ml-64 p-6">
+    {% block content %}{% endblock %}
+  </main>
+  
+  <!-- Player -->
+  {% include 'player.html' %}
+</body>
+</html>

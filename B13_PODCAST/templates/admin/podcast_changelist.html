@@ -1,0 +1,125 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+<div class="drag-drop-container p-8 mb-8 rounded-lg border-2 border-dashed border-gray-300 text-center">
+  <p class="text-lg font-medium mb-4">Drag & Drop audio files here to upload</p>
+  <div id="drop-zone" class="min-h-[200px] flex items-center justify-center">
+    <div class="text-gray-500">
+      <svg class="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+      </svg>
+      <p>Drop files here or click to browse</p>
+      <input type="file" id="file-input" class="hidden" accept="audio/*" multiple>
+    </div>
+  </div>
+  <div id="upload-progress" class="mt-4 hidden">
+    <div class="w-full bg-gray-200 rounded-full h-2.5">
+      <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+    </div>
+    <p id="progress-text" class="text-sm mt-2">Uploading: 0%</p>
+  </div>
+</div>
+
+{{ block.super }}  {# Render original content #}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const dropZone = document.getElementById('drop-zone');
+  const fileInput = document.getElementById('file-input');
+  const progressBar = document.getElementById('progress-bar');
+  const progressText = document.getElementById('progress-text');
+  const progressContainer = document.getElementById('upload-progress');
+  
+  // Open file browser when clicking drop zone
+  dropZone.addEventListener('click', () => fileInput.click());
+  
+  // Handle drag events
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+  });
+  
+  function preventDefaults(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  
+  // Highlight drop zone
+  ['dragenter', 'dragover'].forEach(eventName => {
+    dropZone.addEventListener(eventName, highlight, false);
+  });
+  
+  ['dragleave', 'drop'].forEach(eventName => {
+    dropZone.addEventListener(eventName, unhighlight, false);
+  });
+  
+  function highlight() {
+    dropZone.classList.add('border-blue-500', 'bg-blue-50');
+  }
+  
+  function unhighlight() {
+    dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+  }
+  
+  // Handle file drop
+  dropZone.addEventListener('drop', handleDrop, false);
+  
+  function handleDrop(e) {
+    const dt = e.dataTransfer;
+    const files = dt.files;
+    handleFiles(files);
+  }
+  
+  // Handle file selection
+  fileInput.addEventListener('change', () => {
+    handleFiles(fileInput.files);
+  });
+  
+  // Process files for upload
+  function handleFiles(files) {
+    if (files.length === 0) return;
+    
+    progressContainer.classList.remove('hidden');
+    const formData = new FormData();
+    
+    for (let i = 0; i < files.length; i++) {
+      if (!files[i].type.startsWith('audio/')) {
+        alert('Only audio files are allowed!');
+        return;
+      }
+      formData.append('files', files[i]);
+    }
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    // Upload to server
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '{% url "upload_audio" %}', true);
+    xhr.setRequestHeader('X-CSRFToken', csrfToken);
+    
+    // Progress tracking
+    xhr.upload.addEventListener('progress', function(e) {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        progressBar.style.width = percent + '%';
+        progressText.textContent = `Uploading: ${percent}%`;
+      }
+    });
+    
+    // Handle completion
+    xhr.addEventListener('load', function() {
+      if (xhr.status === 200) {
+        alert('Files uploaded successfully!');
+        // Refresh the page to show new files
+        window.location.reload();
+      } else {
+        alert('Error uploading files: ' + xhr.responseText);
+      }
+      progressContainer.classList.add('hidden');
+    });
+    
+    xhr.send(formData);
+  }
+});
+</script>
+{% endblock %}

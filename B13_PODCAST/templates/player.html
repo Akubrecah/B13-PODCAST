@@ -1,0 +1,31 @@
+<!-- templates/player.html -->
+<div class="player glass-morphism fixed bottom-0 left-0 right-0 p-4">
+  <audio id="audio-player"></audio>
+  <div id="waveform"></div>
+  
+  <div class="controls flex items-center mt-4">
+    <button id="play-btn" class="text-2xl">▶</button>
+    <input type="range" id="progress-bar" class="flex-1 mx-4 accent-purple-500">
+    <span id="current-time">0:00</span>
+    <button id="download-btn" class="ml-4">↓</button>
+  </div>
+</div>
+
+<script>
+  import WaveSurfer from 'wavesurfer.js';
+  
+  const wavesurfer = WaveSurfer.create({
+    container: '#waveform',
+    waveColor: '#4ade80',
+    progressColor: '#a855f7',
+    height: 80,
+    barWidth: 3
+  });
+  
+  // Load audio from current episode
+  wavesurfer.load('{{ current_episode.audio_file }}');
+  
+  document.getElementById('play-btn').addEventListener('click', () => {
+    wavesurfer.playPause();
+  });
+</script>
