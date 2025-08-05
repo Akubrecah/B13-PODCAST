@@ -1,0 +1,6 @@
+/staticfiles/
+/media/
+.env
+*.sqlite3
+.env
+*.env
